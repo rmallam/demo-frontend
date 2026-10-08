@@ -1,0 +1,63 @@
+schemaVersion: 2.2.2
+metadata:
+  name: demo-frontend
+  displayName: demo-frontend
+  description: Node.js website linked to a catalog backend API
+  tags:
+    - Node
+    - Website
+    - Jenkins
+    - Helm
+  attributes:
+    metadata.openshift.io/scopes: ['devspaces']
+
+components:
+  - name: tools
+    container:
+      image: registry.redhat.io/devspaces/udi-rhel9:3.30
+      memoryLimit: 3Gi
+      memoryRequest: 1Gi
+      cpuLimit: "2"
+      cpuRequest: 200m
+      mountSources: true
+      sourceMapping: /projects
+      env:
+        - name: NODEJS_VERSION
+          value: "20"
+        - name: PORT
+          value: "3000"
+        - name: BACKEND_URL
+          value: "http://demo-backend.demo-dev.svc:8080"
+      endpoints:
+        - name: web
+          targetPort: 3000
+          exposure: public
+          protocol: http
+
+commands:
+  - id: lint
+    exec:
+      component: tools
+      workingDir: ${PROJECTS_ROOT}/demo-frontend
+      commandLine: npm run lint
+  - id: test
+    exec:
+      component: tools
+      workingDir: ${PROJECTS_ROOT}/demo-frontend
+      commandLine: npm test
+      group:
+        kind: test
+        isDefault: true
+  - id: run
+    exec:
+      component: tools
+      workingDir: ${PROJECTS_ROOT}/demo-frontend
+      commandLine: npm start
+      group:
+        kind: run
+        isDefault: true
+  - id: helm-lint
+    exec:
+      component: tools
+      workingDir: ${PROJECTS_ROOT}/demo-frontend
+      commandLine: helm lint chart
