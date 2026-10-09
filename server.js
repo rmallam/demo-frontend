@@ -6,6 +6,7 @@ const http = require("http");
 const port = Number(process.env.PORT || 3000);
 const appName = "demo-frontend";
 const defaultBackendUrl = "http://demo-backend.demo-dev.svc:8080";
+const pollMs = Number(process.env.MESH_POLL_MS || 5000);
 
 function currentBackendUrl() {
   const raw = process.env.BACKEND_URL !== undefined ? process.env.BACKEND_URL : defaultBackendUrl;
@@ -17,6 +18,7 @@ function health() {
     status: "ok",
     app: appName,
     type: "website",
+    mesh: "ambient",
     backend: currentBackendUrl() || "not-configured",
   };
 }
@@ -74,6 +76,15 @@ const server = http.createServer((req, res) => {
 if (require.main === module) {
   server.listen(port, "0.0.0.0", () => {
     console.log(`${appName} listening on http://0.0.0.0:${port} backend=${currentBackendUrl() || "unset"}`);
+    if (currentBackendUrl() && pollMs > 0) {
+      setInterval(() => {
+        fetchBackend((err) => {
+          if (err) {
+            console.warn("mesh poll failed", err.message || err);
+          }
+        });
+      }, pollMs);
+    }
   });
 }
 
