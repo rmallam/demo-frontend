@@ -59,6 +59,7 @@ test("GET /health returns ok", async () => {
     const parsed = JSON.parse(body);
     assert.equal(parsed.status, "ok");
     assert.equal(parsed.type, "website");
+    assert.equal(parsed.mesh, "ambient");
   } finally {
     child.kill("SIGTERM");
   }
